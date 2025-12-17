@@ -1,0 +1,74 @@
+name: Gasless Meta-Transaction CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-contracts:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: yarn install
+    
+    - name: Compile contracts
+      run: yarn compile
+    
+    - name: Run contract tests
+      run: yarn hardhat:test
+      env:
+        DEPLOYER_PRIVATE_KEY: ${{ secrets.TEST_PRIVATE_KEY }}
+        ROOTSTOCK_RPC_URL: https://rpc.testnet.rootstock.io
+
+  lint-relayer:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: |
+        yarn install
+        cd packages/relayer && yarn install
+    
+    - name: Lint relayer
+      run: cd packages/relayer && yarn lint
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: yarn install
+    
+    - name: Build frontend
+      run: yarn next:build
+      env:
+        NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID: test
+        NEXT_PUBLIC_FORWARDER_ADDRESS: "0x0000000000000000000000000000000000000000"
+        NEXT_PUBLIC_EXAMPLE_TARGET_ADDRESS: "0x0000000000000000000000000000000000000000"
