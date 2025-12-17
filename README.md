@@ -94,6 +94,8 @@ Visit your app on: `http://localhost:3000`. You can interact with your smart con
 
 This fork extends rsk-scaffold with **EIP-712 compliant gasless meta-transactions** on Rootstock Testnet. Users can interact with smart contracts without paying gas fees by signing messages that are relayed by a backend service.
 
+![Front Page](./packages/nextjs/public/gasless_demo.png)
+
 ### How It Works
 
 1. **User signs an EIP-712 message** containing transaction details (no gas required)
