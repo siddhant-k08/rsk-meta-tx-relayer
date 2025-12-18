@@ -2,6 +2,8 @@
 
 Get the gasless meta-transaction demo running in 5 minutes.
 
+![Gasless Demo Page](./packages/nextjs/public/gasless_demo.png)
+
 ## Prerequisites
 
 - Node.js >= 18.18
