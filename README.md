@@ -1,7 +1,4 @@
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/rsksmart/rsk-scaffold/badge)](https://scorecard.dev/viewer/?uri=github.com/rsksmart/rsk-scaffold)
-[![CodeQL](https://github.com/rsksmart/rsk-scaffold/workflows/CodeQL/badge.svg)](https://github.com/rsksmart/rsk-scaffold/actions?query=workflow%3ACodeQL)
-
-# 🏗 Rootstock-Scaffold
+# 🏗 Rootstock Meta-Transaction Relayer
 
 <div align="center">
 <img src="packages/nextjs/public/rootstock.svg" width="200" />
@@ -9,18 +6,22 @@
 
 <h4 align="center">
   <a href="https://dev.rootstock.io">Rootstock Documentation</a>
-  | <a href="https://github.com/rsksmart/rsk-scaffold/issues">Report Issue</a>
+  | <a href="QUICKSTART.md">Quick Start Guide</a>
 </h4>
+
+A complete gasless meta-transaction implementation for Rootstock, enabling users to interact with smart contracts without paying gas fees.
 
 ⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
 
--   ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
--   🪝 **[Custom hooks](https://dev.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
--   🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
--   🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
--   🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Rootstock network.
+## Features
 
-![Front Page](./packages/nextjs/public/front_page.png)
+-   ✅ **Gasless Transactions**: Users can execute smart contract calls without holding tRBTC for gas
+-   🔄 **Meta-Transaction Relayer**: Backend service that sponsors and relays transactions on behalf of users
+-   🎯 **EIP-2771 Forwarder**: Secure meta-transaction forwarding using industry-standard patterns
+-   🧱 **Example Implementation**: Complete demo with ExampleTarget contract showing gasless interactions
+-   🔐 **Wallet Integration**: Connect with various wallet providers on Rootstock network
+
+![Gasless Demo Page](./packages/nextjs/public/gasless_demo.png)
 
 ## Requirements
 
@@ -29,69 +30,106 @@ Before you begin, you need to install the following tools:
 -   [Node (>= v18.18)](https://nodejs.org/en/download/)
 -   Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
 -   [Git](https://git-scm.com/downloads)
+-   2 Rootstock Testnet wallets with tRBTC ([Get from faucet](https://faucet.rootstock.io/))
+  - One for deploying contracts
+  - One for the relayer service
 
 ## Quickstart
 
-To get started, follow the steps below:
+For a detailed step-by-step guide, see [QUICKSTART.md](QUICKSTART.md).
 
-1. Clone this repo & install dependencies
+### Quick Setup
 
-```sh
-git clone https://github.com/rsksmart/rsk-scaffold.git
+1. **Clone and Install**
+
+```bash
+git clone <this-repo>
+cd rsk-meta-tx-relayer
+yarn install
 ```
 
-2. Open the project directory and install dependencies
+2. **Deploy Contracts**
 
-```sh
-cd rsk-scaffold && yarn install
-```
-
-3. Setup `.env` file for Hardhat:
-
-Make a copy of `.env.example` in `packages/hardhat` folder, name it `.env` and enter the respective values
-
-```
-DEPLOYER_PRIVATE_KEY=
-ROOTSTOCK_RPC_URL=https://rpc.testnet.rootstock.io/YOUR_API_KEY_HERE
-```
-
-4. Deploying smart contracts on Rootstock:
-
-Once the `.env` file is setup, you can now run the below command in your terminal.
-
-```sh
+```bash
+cd packages/hardhat
+cp .env.example .env
+# Edit .env with your DEPLOYER_PRIVATE_KEY
+cd ../..
 yarn deploy
 ```
 
-This command deploys a test smart contract to the Rootstock testnet network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network. You can also customize the deploy script.
+3. **Get Contract Addresses**
 
-5. Setup `.env` file for Next.js app (optional):
-
-Make a copy of `.env.example` in `packages/nextjs` folder, name it `.env` and enter the respective values
-
-```
-NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
-NEXT_PUBLIC_ROOTSTOCK_RPC_URL=https://rpc.testnet.rootstock.io/YOUR_API_KEY_HERE
+```bash
+yarn addresses
 ```
 
-6. On a second terminal, start your NextJS app:
+Copy the Forwarder and ExampleTarget addresses for the next steps.
 
+4. **Configure Relayer**
+
+```bash
+cd packages/relayer
+cp .env.example .env
+# Edit .env with:
+# - RELAYER_PRIVATE_KEY (wallet with tRBTC)
+# - FORWARDER_ADDRESS (from step 3)
+# - EXAMPLE_TARGET_ADDRESS (from step 3)
+yarn install
 ```
+
+5. **Configure Frontend**
+
+```bash
+cd ../nextjs
+cp .env.example .env.local
+# Edit .env.local with:
+# - NEXT_PUBLIC_FORWARDER_ADDRESS (from step 3)
+# - NEXT_PUBLIC_EXAMPLE_TARGET_ADDRESS (from step 3)
+```
+
+6. **Run the Application**
+
+Terminal 1 - Start the relayer:
+```bash
+yarn relayer
+```
+
+Terminal 2 - Start the frontend:
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+7. **Test Gasless Transactions**
 
-**What's next**:
+- Visit http://localhost:3000/gasless
+- Connect your wallet (Rootstock Testnet)
+- Try both transaction types:
+  - **Direct Call** - Traditional transaction where you pay gas
+  - **Gasless Call** - Meta-transaction where the relayer pays gas
 
--   Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
--   Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
--   Edit your deployment scripts in `packages/hardhat/deploy`
--   Edit your smart contract test in: `packages/hardhat/test`. To run test use `yarn hardhat:test`
+## Project Structure
+
+-   **`packages/hardhat/contracts`** - Smart contracts including:
+  - `Forwarder.sol` - EIP-2771 meta-transaction forwarder
+  - `ExampleTarget.sol` - Demo contract with gasless function support
+-   **`packages/relayer`** - Express.js backend service that sponsors and relays transactions
+-   **`packages/nextjs`** - Next.js frontend with gasless transaction demo at `/gasless`
+-   **`packages/hardhat/deploy`** - Deployment scripts for contracts
+
+## How It Works
+
+This project implements EIP-2771 meta-transactions, allowing users to interact with smart contracts without paying gas fees:
+
+1. **User signs a message** - Instead of sending a transaction, the user signs a message containing the function call details
+2. **Relayer receives the signed message** - The backend relayer service receives the signed message via API
+3. **Relayer verifies and forwards** - The relayer verifies the signature and submits the transaction on-chain, paying the gas fees
+4. **Smart contract validates** - The Forwarder contract validates the signature and forwards the call to the target contract
+5. **Target contract executes** - The target contract receives the original sender's address and executes the function
 
 ## Rootstock Network Configuration
 
-This scaffold is configured for Rootstock Testnet by default. Here are the network details:
+This project is configured for Rootstock Testnet by default:
 
 - **Network Name**: Rootstock Testnet
 - **Chain ID**: 31
@@ -101,15 +139,36 @@ This scaffold is configured for Rootstock Testnet by default. Here are the netwo
 
 ### Getting Rootstock Testnet tRBTC
 
-You can get testnet tRBTC from the [Rootstock Faucet](https://faucet.rootstock.io/).
+You need tRBTC for:
+- Deploying contracts (deployer wallet)
+- Running the relayer service (relayer wallet)
+
+Get testnet tRBTC from the [Rootstock Faucet](https://faucet.rootstock.io/).
+
+## Troubleshooting
+
+**Relayer fails to start:**
+- Ensure the relayer wallet has sufficient tRBTC for gas fees
+- Verify the `RELAYER_PRIVATE_KEY` is set correctly in `packages/relayer/.env`
+
+**Frontend can't find contracts:**
+- Check that addresses in `packages/nextjs/.env.local` match the deployed contract addresses
+- Run `yarn addresses` to get the correct addresses
+
+**Transactions fail:**
+- Verify you're connected to Rootstock Testnet (Chain ID 31)
+- Ensure the relayer service is running
+- Check that the Forwarder and ExampleTarget addresses are correct
 
 ## Documentation
 
-Visit our [Rootstock docs](https://dev.rootstock.io) to learn how to start building with Rootstock.
+- [Rootstock Documentation](https://dev.rootstock.io) - Learn how to build on Rootstock
+- [EIP-2771: Secure Protocol for Native Meta Transactions](https://eips.ethereum.org/EIPS/eip-2771)
+- [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
 
 ## Contributing
 
-We welcome contributions from the community. Please fork the repository and submit pull requests with your changes. Ensure your code adheres to the project's main objective.
+We welcome contributions from the community. Please fork the repository and submit pull requests with your changes. Ensure your code adheres to the project's main objective of providing a secure and efficient meta-transaction implementation.
 
 ## Support
 
@@ -126,5 +185,3 @@ The software provided in this GitHub repository is offered "as is," without warr
 - **No Endorsement:** Mention of any specific product, service, or organization does not constitute or imply endorsement by the author(s) of this software.
 - **Modification and Distribution:** This software may be modified and distributed under the terms of the license provided with the software. By modifying or distributing this software, you agree to be bound by the terms of the license.
 - **Assumption of Risk:** By using this software, the user acknowledges and agrees that they have read, understood, and accepted the terms of this disclaimer and assumes all risks associated with the use of this software.
-
-To know more about Scaffold-ETH features, check out their [website](https://scaffoldeth.io).
